@@ -1,8 +1,15 @@
-# my stuff
-
+## my stuff
+#fodlers
 data/
 data_ids/
 raw/
+
+#files
+*.csv
+*.xlsx
+*.json
+*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
