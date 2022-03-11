@@ -402,7 +402,7 @@ for i, e in enumerate(convert_pdf_to_df(file)):
         e.to_excel(f'test_{i}.xlsx')
     except Exception as ex:
         print(ex)
-
+()
 # parser = Parser()
 # res = parser.parse_file(file)
 # print(res)
