@@ -1,26 +1,36 @@
-from pdfminer.layout import LAParams
-from io import StringIO
-import pdfminer
-from pdfminer.high_level import extract_text_to_fp
-file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\188456_2020_Rukovoditeli_podvedomstvennykh_uchrezhdenii_(obrazovanie).pdf"
-file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\189429_2020_Rektor,_prorektory,_glavnyi_bukhgalter.pdf"
-# text = pdfminer.high_level.extract_text(file)
-# text
+# def parse(self, filename: Path) -> tuple[bool, pd.DataFrame]:
+#     # пытаемся найти учреждения в теле таблиц
 
-#text = pdfminer.high_level.extract_text(file)
-# repr(text)
+#     # TODO: добавить проверку doc или pdf
 
-# output_string = open('temp.html', 'w')
-output_string = StringIO()
+#     tables = self.convert_pdf_to_df_and_find_tables(filename)
+
+#     tables_with_ok_headers = []
+
+#     for table in tables:
+#         res, df = self.table_splitter(table)
+#         if res:
+#             tables_with_ok_headers.append(df)
+
+#         if not res:
+#             del tables
+#             # идем парсить весь док, чтобы достать учреждения из текста перед таблицей
+#             dfs = self.detect_headers_in_raw_doc(filename)
+#             if dfs:
+#                 for df in dfs:
+#                     tables_with_ok_headers.append(df)
+# break
+
+a = None
 
 
-with open(file, 'rb') as fin:
-    res = extract_text_to_fp(fin, output_string, laparams=LAParams(),
-                             output_type='html', codec=None)
-    output_string.seek(0)
-    print(output_string.read())
+def fun():
+
+    tables = a
+
+    if 1:
+        del tables
 
 
-# import io
-# buf = io.StringIO('hui')
-# print(buf)
+fun()
+print("!")
