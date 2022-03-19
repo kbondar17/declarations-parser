@@ -1,36 +1,33 @@
-# def parse(self, filename: Path) -> tuple[bool, pd.DataFrame]:
-#     # пытаемся найти учреждения в теле таблиц
+import pandas as pd
+import camelot
+import logging
+from pathlib import Path
 
-#     # TODO: добавить проверку doc или pdf
+logging.getLogger('camelot').setLevel('ERROR')
 
-#     tables = self.convert_pdf_to_df_and_find_tables(filename)
+logging.basicConfig(format=u'%(filename)+13s [ LINE:%(lineno)-4s] [ Function %(funcName)s ] :::   %(message)s',
+                    level=logging.DEBUG, filename='my_log.log', filemode='w')
 
-#     tables_with_ok_headers = []
-
-#     for table in tables:
-#         res, df = self.table_splitter(table)
-#         if res:
-#             tables_with_ok_headers.append(df)
-
-#         if not res:
-#             del tables
-#             # идем парсить весь док, чтобы достать учреждения из текста перед таблицей
-#             dfs = self.detect_headers_in_raw_doc(filename)
-#             if dfs:
-#                 for df in dfs:
-#                     tables_with_ok_headers.append(df)
-# break
-
-a = None
+my_logger = logging.getLogger(__name__)
 
 
-def fun():
+class PdfParser:
 
-    tables = a
+    @staticmethod
+    def convert_pdf_to_df(filename) -> list[pd.DataFrame]:
+        tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=10, line_scale=40, copy_text=[
+                                  'v'], pages='1-end')  # , flavor='stream' row_tol=10
+        tables = [e.df for e in tables]
+        return tables
 
-    if 1:
-        del tables
+    def get_camelot_tables(self, filename):
+        tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=100, line_scale=40, copy_text=[
+                                  'v'], pages='1-end')  # , flavor='stream' row_tol=10
+        return tables
 
 
-fun()
-print("!")
+file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\83327_2016_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+
+# parser = PdfParser()
+# res = parser.convert_pdf_to_df(Path(file))
+# print(res)
