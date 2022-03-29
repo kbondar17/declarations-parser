@@ -10,6 +10,8 @@ raw/
 *.json
 *.txt
 *.zip
+*.pkl
+*.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

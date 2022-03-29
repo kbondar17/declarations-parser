@@ -1,3 +1,4 @@
+from number_to_text import num2text
 import pandas as pd
 import camelot
 import logging
@@ -31,3 +32,5 @@ file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\83327
 # parser = PdfParser()
 # res = parser.convert_pdf_to_df(Path(file))
 # print(res)
+
+print(num2text(111))

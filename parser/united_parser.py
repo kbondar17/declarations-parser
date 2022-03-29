@@ -25,9 +25,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from pathlib import Path
-# import tqdm.notebook.tqdm as tqdm
-from tqdm import tqdm_notebook
 
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import logging
 logging.basicConfig(format=u'%(filename)+13s [ LINE:%(lineno)-4s] %(levelname)-8s %(message)s',
@@ -42,8 +41,17 @@ class PdfParser:
     def convert_pdf_to_df(filename) -> list[pd.DataFrame]:
         tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=10, line_scale=40, copy_text=[
                                   'v', 'h'], pages='1-end')  # , flavor='stream' row_tol=10
+
+        pages = [e.page for e in tables]
         tables = [e.df for e in tables]
+        for page, df in zip(pages, tables):
+            df['page'] = str(page) + '_000000({page_column})'
+            df.at[0, 'page'] = 'page'
+
         return tables
+
+        # tables = [e.df for e in tables]
+        # return tables
 
     def get_camelot_tables(self, filename):
         tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=100, line_scale=40, copy_text=[
@@ -214,7 +222,7 @@ class DocxParser:
                 raise
 
     def convert_docx_to_df(self, filename: str) -> pd.DataFrame:
-        assert filename.endswith('docx'), 'Формат должен быть .docx!'
+        assert str(filename).endswith('docx'), 'Формат должен быть .docx!'
 
         doc = Document(filename)
         # TODO: тут взять текст, который потом прикрутить к
@@ -238,7 +246,8 @@ class IncorrectHeaders:
         # TODO: добавить обработку чисто docx
 
         # self.docx_parser = DocxParser()
-        # self.pdf_parser = PdfParser()
+        self.pdf_parser = PdfParser()
+
     @staticmethod
     def drop_col_with_N(df: pd.DataFrame):
         expr = '(№|п/п)'
@@ -252,12 +261,25 @@ class IncorrectHeaders:
     @staticmethod
     def drop_short_cols(df: pd.DataFrame):
         df = df.applymap(str)
-        len_df = df.applymap(len)
-        columns_numbers = [x for x in range(df.shape[1])]
+        df = df.applymap(str)
+        bool_df = df.applymap(lambda x: len(x) < 4)
         to_remove = []
+
+        columns_numbers = [x for x in range(df.shape[1])]
+
         for i in columns_numbers:
-            if len_df.iloc[:, i].mean() < 4:
+            col_len = len(bool_df.iloc[:, i])
+            if sum(bool_df.iloc[:, i]) > col_len // 2:
                 to_remove.append(i)
+
+        # len_df = df.applymap(len)
+        # columns_numbers = [x for x in range(df.shape[1])]
+        # to_remove = []
+        # for i in columns_numbers:
+        #     # не среднее по длине. а количество колонок, где данных менше 4
+        #     if len_df.iloc[:, i].mean() < 4:
+        #         to_remove.append(i)
+
         if to_remove:
             for e in to_remove:
                 columns_numbers.remove(e)
@@ -292,6 +314,7 @@ class IncorrectHeaders:
                 cols = table.iloc[e, :].values
                 if check_if_same(cols):
                     index_to_split.append(e)
+            print('ы')
             return index_to_split
 
             # если разделили и нашли офис - True
@@ -302,14 +325,17 @@ class IncorrectHeaders:
                  директор     Ваня    100 руб
 
              """
+            # table = ''
             dfs = np.array_split(table, index_to_split)
             dfs = [e for e in dfs if len(e) > 0]
+            # TODO: здесь криво определяет когда учреждение идет после заголовков сразу
+            # 83334_2018
 
             result_dfs = []
             for df in dfs:
                 office = df.iloc[0, :][0]
                 df = df.iloc[1:, :]
-                df['office'] = office
+                df['department'] = office
                 result_dfs.append(df)
 
             result_dfs = [e for e in result_dfs if not e.empty]
@@ -320,7 +346,7 @@ class IncorrectHeaders:
                 print(ex)
                 # print('rogue file---', table)
 
-        index_to_split = get_indexes_to_split(table)
+        index_to_split = get_indexes_to_split(table.iloc[:, :-1])
 
         if not index_to_split:
             return False, table
@@ -373,6 +399,7 @@ class IncorrectHeaders:
 
             if found_cols:
                 df.columns = df.iloc[i, :]
+                # TODO: возможно тут надо отдавать i+2
                 return {'df': df.iloc[i+1:, :], 'if_ok_cols': True}
 
             if i > 5:
@@ -396,18 +423,26 @@ class IncorrectHeaders:
 
         return True
 
-    def convert_pdf_to_dfs(self, filename: str) -> list[pd.DataFrame]:
+    # def convert_pdf_to_dfs(self, filename: str) -> list[pd.DataFrame]:
 
-        try:
-            tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=10, line_scale=40, copy_text=[
-                'v', 'h'], pages='1-end')  # , flavor='stream' row_tol=10
+    #     try:
+    #         tables = camelot.read_pdf(str(filename), line_tol=2, joint_tol=10, line_scale=40, copy_text=[
+    #             'v', 'h'], pages='1-end')  # , flavor='stream' row_tol=10
 
-            tables = [e.df for e in tables]
-            return tables
+    #         pages = [e.page for e in tables]
+    #         tables = [e.df for e in tables]
+    #         for page, df in zip(pages, tables):
+    #             df['page'] = page
+    #             df.at[0, 'page'] = str(page) + '_000000'
+    #         print('ы')
+    #         return tables
 
-        except Exception as ex:
-            logger.error('file --- %s', filename)
-            logger.error('Exception --- %s', ex)
+    #         # tables = [e.df for e in tables]
+    #         # return tables
+
+    #     except Exception as ex:
+    #         logger.error('file --- %s', filename)
+    #         logger.error('Exception --- %s', ex)
 
     def detect_headers_in_raw_doc(self, filename, parsed_tables: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
@@ -459,8 +494,8 @@ class IncorrectHeaders:
 
             if len(departments) == len(tables):
                 for table, dep in zip(tables, departments):
-                    table['Учреждение'] = dep
-                    table['Учреждение'][0] = 'Учреждение'
+                    table['department'] = dep
+                    table['department'][0] = 'Учреждение'
 
                     ok_dfs.append(table)
 
@@ -470,7 +505,8 @@ class IncorrectHeaders:
                 text = f'Разное число таблиц ({len(tables)}) и учреждений ({len(departments)})'
                 f.write(text)
 
-#            raise ValueError(f'Разное число таблиц ({len(tables)}) и учреждений ({len(departments)})')
+            raise ValueError(
+                f'Разное число таблиц ({len(tables)}) и учреждений ({len(departments)})')
 
         temp_docfile = self.convert_pdf_to_docx_to_find_info(
             filename)  # получили path временного docx файла
@@ -485,9 +521,18 @@ class IncorrectHeaders:
         if all(all_oks):
             return [e['df'] for e in dfs]
 
+        # TODO: он блять не может конкатинировать, потому что название страницы page разные!
+        # нам и не надо конкатинировать, просто экспортируем
+        # это все текст, инструкции. есть текст, который влияет на людей, может долго оставаться важным, актуальным
+        # есть текст, который влияет на системы. у него может быть большая маржа. код можно переиспользовать
+
+        # посмотреть норм ли в целом определяются колонки. если норм, то при неудачи конкатинации - просто отдаем что есть.
+
         result_df = []
         df_to_concat = pd.DataFrame()
-        for df_info in dfs:
+        for i, df_info in enumerate(dfs):
+            df_info['df'].to_excel(f'concat_test/{i}.xlsx')
+
             if df_info['if_ok_cols']:
                 if not df_to_concat.empty:
                     result_df.append(df_to_concat)
@@ -514,7 +559,7 @@ class IncorrectHeaders:
 
         # должны быть просто таблицы
         # и вся обработка должна быть тут, по этапам. иначе макароны
-        tables = self.convert_pdf_to_dfs(filename)
+        tables = self.pdf_parser.convert_pdf_to_df(filename)
 
         # дропаем маленькие колонки
         tables = [self.drop_short_headers(e) for e in tables]
@@ -531,6 +576,9 @@ class IncorrectHeaders:
         Если у них нет учреждений - идем парсить в док. 
         
         """
+        def sjoin(x): return ';'.join(set(x[x.notnull()].astype(str)))
+        tables = [df.groupby(level=0, axis=1).apply(
+            lambda x: x.apply(sjoin, axis=1)) for df in tables]
 
         # у нас тут лист словарей {df:bool}. к каждой таблице мы должны приделать True или False
         tables = [self.find_ok_cols(e) for e in tables]
@@ -551,12 +599,17 @@ class IncorrectHeaders:
 
         tables_with_ok_headers = []
 
+        # проблема в том, что иногда есть норм заги на первой странице
+
         for table in tables:
             res, df = self.table_splitter(table)
             if res:
                 tables_with_ok_headers.append(df)
 
-            if not res:
+            if tables_with_ok_headers and not res:
+                tables_with_ok_headers.append(df)
+
+            if not tables_with_ok_headers and not res:
                 # идем парсить весь док, чтобы достать учреждения из текста перед таблицей
                 dfs = self.detect_headers_in_raw_doc(
                     filename, parsed_tables=tables)
@@ -573,7 +626,8 @@ class IncorrectHeaders:
 class Parser:
 
     def __init__(self):
-        self.cols_we_need = ['name', 'salary', 'position', 'department']
+        self.cols_we_need = ['name', 'salary',
+                             'position', 'department', 'page']
         self.all_docs: list[str]
         self.docx_parser = DocxParser()
         self.pdf_parser = PdfParser()
@@ -595,7 +649,7 @@ class Parser:
         elif re.search(pattern='(должност[ь, и, ей])', string=col):
             return 'position'
 
-        elif re.search(pattern='(предприяти[е,я]|учреждени[е,я]|юридическое лицо)', string=col):
+        elif re.search(pattern='(предприяти[е,я]|учреждени[е,я]|юридическ|организаци)', string=col):
             return 'department'
 
         return col
@@ -609,7 +663,7 @@ class Parser:
         ok_cols = 0
         company_found = False
         for col in cols:
-            company_pattern = '(предприяти[е,я]|учреждени[е,я]|юридическ[ое,ие])'
+            company_pattern = '(предприяти[е,я]|учреждени[е,я]|юридическ[ое,ие]|организаци)'
             res = re.search(pattern=company_pattern, string=col)
             if res:
                 company_found = True
@@ -638,7 +692,7 @@ class Parser:
         parsed_tables = []
 
         for table in tables:
-            # удалить кал из маленьких ячеек?
+            # TODO: удалить лишнее из маленьких ячеек?
 
             columns_ok = self.check_if_columns_ok(table)
 
@@ -663,12 +717,17 @@ class Parser:
                         # убираем лишние ячейки и символы
 
                         #table = self.data_cleaner.clean_df(table)
+                        file_id = '_'.join(
+                            str(file).split('\\')[-1].split('_')[:2])
+                        table['documentfile_id'] = file_id
                         parsed_tables.append(table)
                     break
 
                 else:
                     # TODO: сохранить файл в папку нераспаршенных
                     logger.warning('Не удалось распарсить ----', file)
+                    raise ValueError(
+                        'не удалось распарсить. мб разное число загов и таблиц')
 
             elif columns_ok:
                 # если заголовки ок
@@ -683,10 +742,22 @@ class Parser:
                 table = self.parse_correct_headers.parse(table)
                 # убираем лишние ячейки и символы
                 # table = self.data_cleaner.clean_df(table)
+                file_id = '_'.join(str(file).split('\\')[-1].split('_')[:2])
+                table['documentfile_id'] = file_id
                 parsed_tables.append(table)
 
         if isinstance(parsed_tables, list):
             if parsed_tables:
+
+                def sjoin(x): return ';'.join(set(x[x.notnull()].astype(str)))
+                parsed_tables = [df.groupby(level=0, axis=1).apply(
+                    lambda x: x.apply(sjoin, axis=1)) for df in parsed_tables]
+
+                # TODO: не мержить. а отдавать в json сразу. или таблицу
+                #
+
+                parsed_tables = [df.reset_index(
+                    drop=True) for df in parsed_tables]
                 concat_tables = pd.concat(parsed_tables)
                 return concat_tables
 
@@ -695,21 +766,80 @@ class Parser:
                 return concat_tables
 
 
-file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\83334_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
 parser = Parser()
 folder = Path('./data_ids/pdf/converted')
 
-with open('parser/files_to_parse.txt', 'r') as f:
-    for file in f.readlines():
-        file = file.strip()
+# TODO:
+# 1. raw salary - post продакшн
+# 2. page number
+
+
+def parse_folder(folder):
+    for file in tqdm(os.listdir(folder)):
         file_path = folder / file
-        
-        try:
+        if file.endswith('.pdf'):
 
-            res = parser.parse_file(file_path)
-            temp_file = folder / 'cool' / file
-            res.to_excel(str(temp_file) + '.xlsx')
+            try:
+                res = parser.parse_file(file_path)
+                temp_file = folder / 'cool' / file
+                res.to_excel(str(temp_file) + '.xlsx')
 
-        except Exception as ex:
-            with open(f'error_{file.strip()}.txt', 'w') as f:
-                traceback.print_exc(file=f)
+            except Exception as ex:
+                with open(f'error_{file.strip()}.txt', 'w') as f:
+                    print(ex)
+                    traceback.print_exc(file=f)
+
+
+def convert_folder_from_pdf_to_df_pkl(folder):
+    for file in tqdm(reversed(os.listdir(folder))):
+
+        file_path = folder / file
+        if '85445_2018' in file:
+            # if file.endswith('.pdf') and file == '85445_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.PDF':
+
+            try:
+                res = parser.pdf_parser.convert_pdf_to_df(file_path)
+                with open(f'{file}.pkl', 'wb') as f:
+                    pickle.dump(res, f)
+
+            except Exception as ex:
+                with open(f'error_{file.strip()}.txt', 'w') as f:
+                    print(ex)
+                    traceback.print_exc(file=f)
+
+
+file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\180466_2020_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\181030_2020_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+# res = parser.parse_file(file)
+# res.to_excel('result.xlsx')
+convert_folder_from_pdf_to_df_pkl(folder)
+
+# parse_folder(folder)
+# file = r'83307_2017_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf'
+# file = r'83325_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf'
+# file = r'100185_2019_Rukovoditeli_podvedomstvennykh_uchrezhdenii_(sport).pdf'
+# filepath = folder / file
+# res = parser.parse_file(filepath)
+# res.to_excel("test_result.xlsx")
+
+# file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\83323_2017_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+# file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\83334_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+# res = parser.parse_file(file)
+
+# temp_file = folder / 'cool' / file
+# res.to_excel(str(temp_file) + '.xlsx')
+
+
+# with open('parser/files_to_parse.txt', 'r') as f:
+#     for file in f.readlines():
+#         file = file.strip()
+#         file_path = folder / file
+
+#         try:
+#             res = parser.parse_file(file_path)
+#             temp_file = folder / 'cool' / file
+#             res.to_excel(str(temp_file) + '.xlsx')
+
+#         except Exception as ex:
+#             with open(f'error_{file.strip()}.txt', 'w') as f:
+#                 traceback.print_exc(file=f)
