@@ -1,4 +1,5 @@
 
+from collections import Counter
 import requests
 import re
 import time
@@ -235,7 +236,7 @@ class IncorrectHeaders:
     @staticmethod
     def if_office_in_cols(dfs: list[pd.DataFrame]) -> list[dict[pd.DataFrame, bool]]:
 
-        office_pattern = '(предприяти[е,я]|учреждени[е,я]|юридическ[ие, ое]|организаци)'
+        office_pattern = '(предприяти[е,я]|учреждени[е,я]|юридическ[ие, ое]|организаци|наименование МО)'
 
         res = []
 
@@ -330,7 +331,7 @@ class IncorrectHeaders:
     def give_numbers_to_unnamed_cols(df) -> pd.DataFrame:
 
         def fun():
-            for e in range(1, 100):
+            for e in range(100, 200, 3):
                 yield e
 
         numbers = fun()
@@ -407,11 +408,23 @@ pkl_folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser'
 pdf_folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted'
 result_folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\second_parsed_from_pickle'
 incor_parser = IncorrectHeaders()
+file = r'83304_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf.pkl'
 
-
+path = pkl_folder + '\\' + file
+tables = get_dfs_from_pkl(path)
+# print(len(tables))
+# print(type(tables[0]))
+# print(tables[0])
+# for i, t in enumerate(tables):
+#     t.to_excel(f'{i}.xlsx')
+res = incor_parser.parse(tables=tables[:3], pdf_filename='')
+for i, e in enumerate(res):
+    e.to_excel(f'{i}_temp_res.xlsx')
+res = incor_parser.parse
 errors = []
-# res = incor_parser.parse(tables, '')
+res = incor_parser.parse(tables, '')
 # res
+
 
 # for file in  tqdm_notebook(os.listdir(pkl_folder)):
 #     if file.endswith('pkl'):
@@ -426,7 +439,32 @@ errors = []
 #             #save_to_pkl(tables, result_folder + '//' + file)
 
 
-file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\86330_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf.pkl"
-tables = get_dfs_from_pkl(file)
-res = incor_parser.parse(tables, file)
-res[0].to_excel('temp3.xlsx')
+# file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\85445_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.PDF.pkl"
+
+
+# РАБОТАЮЩИЙ ПАРСИНГ
+# folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser'
+# files = [e for e in os.listdir(folder) if e.endswith('pkl')]
+# result_folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\parsed_pdf_ok_not_cleaned'
+# pdf_folder = r'D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted'
+
+# result = []
+# not_list = []
+# for file in tqdm_notebook(files):
+#     try:
+#         pdf_file = pdf_folder + '\\' + file.strip('.pkl')
+#         tables = get_dfs_from_pkl(folder + '\\' + file)
+#         tables = incor_parser.parse(tables, pdf_filename=pdf_file)
+
+#         if type(tables) == list:
+#             for i, tab in enumerate(tables):
+#                 file_id = '_'.join(file.split('_')[:2])
+#                 tab.to_excel(result_folder + '\\' +
+#                              f'{i}_' + file_id + '.xlsx')
+
+#     except Exception as ex:
+#         not_list.append({'file': file, 'ex': ex})
+
+
+# with open('exceptions.pkl', 'wb') as f:
+#     pickle.dump(not_list, f)

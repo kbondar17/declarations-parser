@@ -1,4 +1,3 @@
-from number_to_text import num2text
 import pandas as pd
 import camelot
 import logging
@@ -28,9 +27,8 @@ class PdfParser:
 
 
 file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\83327_2016_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
+file = r"D:\PROGR\LEARN_PYTHON\Declarator\declarations-parser\data_ids\pdf\converted\83304_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
 
-# parser = PdfParser()
-# res = parser.convert_pdf_to_df(Path(file))
-# print(res)
-
-print(num2text(111))
+parser = PdfParser()
+tables = parser.convert_pdf_to_df(file)
+tables[0].to_excel('opened_pdf.xlsx')
