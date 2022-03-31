@@ -1,0 +1,7 @@
+docx==0.2.4
+docx2python==2.0.4
+pandas==1.3.4
+python_docx==0.8.11
+tqdm==4.63.0
+typer==0.4.1
+openpyxl
