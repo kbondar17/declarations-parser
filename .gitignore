@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 #my stuff
 TODO.txt
+Scripts/
+Lib/
+Include/
+parsing_results/
 
 # C extensions
 *.so

@@ -15,6 +15,10 @@ app = typer.Typer()
 def hello(name: str):
     typer.echo(f"Hello {name}")
 
+@app.command()
+def parse_test():
+    print('Парсим тестовые данные')
+    
 
 @app.command()
 def parse_file(file: str, out_format: str = 'xlsx'):

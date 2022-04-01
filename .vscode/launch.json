@@ -11,7 +11,7 @@
             "module": "myparser",
             "args": [
                 "parse-file",
-                "myparser\\test_data\\83338_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii_(FGUP_GRChTs).docx"
+                "myparser\\test_data\\83346_2017_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.xlsx"
             ],
             "console": "integratedTerminal",
             "justMyCode": true

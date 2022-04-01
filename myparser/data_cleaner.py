@@ -6,7 +6,8 @@ logger = get_logger(__name__)
 
 
 class DataCleaner:
-    """убирает лишние данные"""
+    
+    """убирает лишние данные, конвертирует зарплату."""
 
     def __init__(self):
         self.cols_we_need = ['department', 'page',  'name',	'position',
@@ -145,7 +146,8 @@ class DataCleaner:
 
         return df
 
-    def clean_df(self, df):
+    def clean_df(self, df:pd.DataFrame):
+        
         df.columns = [self.rename_col(col) for col in df.columns]
         df = df[[col for col in df.columns if col in self.cols_we_need]]
 

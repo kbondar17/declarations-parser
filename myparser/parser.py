@@ -7,6 +7,7 @@ from pathlib import Path
 
 from myparser.data_cleaner import DataCleaner
 from myparser.docx_parser import DocxParser
+from myparser.excel_parser import ExcelParser
 from myparser.utils import convert_df_to_json
 from tqdm import tqdm
 
@@ -19,7 +20,7 @@ class Parser:
 
     def __init__(self) -> None:
         self.pdf_parser = ''
-        self.excel_parser = ''
+        self.excel_parser = ExcelParser()
         self.docx_parser = DocxParser()
         self.data_cleaner = DataCleaner()
 
@@ -29,14 +30,14 @@ class Parser:
             raise ValueError('Допустимые форматы: .docx, .xlsx, .pdf')
 
         if file.endswith('.xlsx'):
-            dfs = self.excel_parser(file)
+            dfs = self.excel_parser.parse_file(Path(file))
 
         elif file.endswith('.docx'):
             dfs = self.docx_parser.parse_file(file)
 
         elif file.endswith('.pdf'):
             dfs = self.pdf_parser(file)
-
+        
         dfs = [self.data_cleaner.clean_df(df) for df in dfs]
 
         destination_folder = Path(destination_folder)
