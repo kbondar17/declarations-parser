@@ -22,8 +22,8 @@ def hello(name: str):
 @app.command()
 def parse_test():
     test_folder = os.path.join('myparser', 'test_data')
-    for file in os.listdir(test_folder):
-        parser.parse_file(os.path.join(test_folder, file), out_format=out_format)
+    parse_folder(test_folder)
+
 
 @app.command()
 def parse_folder(path):

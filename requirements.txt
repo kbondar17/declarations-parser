@@ -1,4 +1,4 @@
-python>=3.9.8
+python-dotenv
 docx==0.2.4
 docx2python==2.0.4
 pandas==1.3.4
@@ -7,6 +7,8 @@ tqdm==4.63.0
 typer==0.4.1
 openpyxl
 xlrd==2.0.1
-camelot==12.6.29
+camelot-py
+camelot-py[cv]
+camelot-py[all]
 pytesseract==0.3.9
 pdf2image==1.16.0

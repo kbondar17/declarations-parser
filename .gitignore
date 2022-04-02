@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
 #my stuff
 TODO.txt
 Scripts/
@@ -9,7 +10,7 @@ Lib/
 Include/
 parsing_results/
 temp.py
-
+temp*
 # C extensions
 *.so
 
