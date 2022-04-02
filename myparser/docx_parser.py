@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from docx import Document
 from docx2python import docx2python
-from myparser.config import get_logger
+from myparser.my_logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -19,7 +19,11 @@ class HeaderFinder:
 
     def find_and_split_departments(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        отдает df с учреждением, если оно было записано в середине таблицы
+        разделяет таблицу в случае когда название учреждения поместили в середину вот так:
+            -должность-  -имя-  -зарплата-
+                    -ГБОУ школа 112-
+                директор     Ваня    100 руб
+
         """
 
         def _add_department_info_to_df(df: pd.DataFrame, dep_info: list[dict[int, str]]) -> pd.DataFrame:

@@ -1,6 +1,6 @@
 import pandas as pd
 import re
-from myparser.config import get_logger
+from myparser.my_logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -74,8 +74,7 @@ class DataCleaner:
                 to_delete.append(index)
                 continue
 
-        logger.debug('Посчитали неподходящими и удаляем эти ряды: %s',
-                     df.iloc[to_delete, :].values)
+
         df.drop(index=to_delete, axis=1, inplace=True)
 
         return df
@@ -155,9 +154,13 @@ class DataCleaner:
 
         df = self.get_numeric_salary(df)
         if 'salary' in df.columns:
-            df['salary_raw'] = df['salary'].copy()
+            df['raw_salary'] = df['salary'].copy()
             df['salary'] = df['salary'].apply(self.salary_parser)
 
         df = self.remove_unwanted_rows(df)
+        
+        df['salary'].fillna(value=0, inplace=True)
 
         return df
+
+

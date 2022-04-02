@@ -1,17 +1,16 @@
 
-import logging
 import os
-import typing
 import json
 from pathlib import Path
 
 from myparser.data_cleaner import DataCleaner
 from myparser.docx_parser import DocxParser
 from myparser.excel_parser import ExcelParser
+from myparser.pdf_parser import PdfParser
 from myparser.utils import convert_df_to_json
-from tqdm import tqdm
 
-from myparser.config import get_logger
+
+from myparser.my_logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -19,7 +18,7 @@ logger = get_logger(__name__)
 class Parser:
 
     def __init__(self) -> None:
-        self.pdf_parser = ''
+        self.pdf_parser = PdfParser()
         self.excel_parser = ExcelParser()
         self.docx_parser = DocxParser()
         self.data_cleaner = DataCleaner()
@@ -36,12 +35,12 @@ class Parser:
             dfs = self.docx_parser.parse_file(file)
 
         elif file.endswith('.pdf'):
-            dfs = self.pdf_parser(file)
-        
+            dfs = self.pdf_parser.parse(file)
+
         dfs = [self.data_cleaner.clean_df(df) for df in dfs]
 
         destination_folder = Path(destination_folder)
-        new_file_name = Path(file).stem
+        new_filename = Path(file).stem
 
         try:
             os.mkdir(destination_folder)
@@ -50,10 +49,10 @@ class Parser:
             logger.debug('папка "parsing_results" уже есть. сохраняем в нее')
 
         if out_format == 'xlsx':
+            new_filename += '.xlsx'
             for i, df in enumerate(dfs):
-                new_file_name += '.xlsx'
-                new_file_name = f'{i}_' + new_file_name
-                new_file_path = destination_folder / new_file_name
+                new_filename_with_number = f'{i}_' + new_filename
+                new_file_path = destination_folder / new_filename_with_number
                 df.to_excel(new_file_path, index=False)
 
             logger.debug('Из файла %s выгружено таблиц: %s', file, i+1)
@@ -61,11 +60,10 @@ class Parser:
         elif out_format == 'json':
             my_json = [convert_df_to_json(df) for df in dfs]
             for i, table in enumerate(my_json):
-                new_file_name = f'{i}_' + Path(file).stem + '.csv'
-                with open(destination_folder / new_file_name) as f:
+                new_file_name = f'{i}_' + Path(file).stem + '.json'
+                with open(destination_folder / new_file_name, 'w') as f:
                     json.dump(table, f)
 
             logger.debug('Из файла %s выгружено таблиц: %s', file, i+1)
 
-    def parse_folder(self, folder):
-        pass
+ 

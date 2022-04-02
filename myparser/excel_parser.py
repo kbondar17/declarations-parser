@@ -1,4 +1,3 @@
-
 import re
 import statistics
 from pathlib import Path
@@ -8,7 +7,7 @@ import pandas as pd
 import xlrd
 from openpyxl import load_workbook
 
-from myparser.config import get_logger
+from myparser.my_logger import get_logger
 logger = get_logger(__name__)
 
 class ExcelParser:
@@ -55,6 +54,7 @@ class ExcelParser:
         for k, v in new_cols.items():
             df.rename(columns={df.columns[k]: v}, inplace=True)
         return df
+        
 
     @staticmethod      
     def find_department_in_table(df: pd.DataFrame) -> list[dict[int, str]]:
@@ -158,12 +158,12 @@ class ExcelParser:
 
     def parse_file(self, filename: Path) -> list[pd.DataFrame]:
         
-        if filename.stem.endswith('.xlsx'):
+        if Path(filename).suffix == '.xlsx':
             dfs = self.open_xlsx(filename)
-        elif filename.stem.endswith('.xls'):
+        elif Path(filename).suffix == '.xls':
             dfs = self.open_xls(filename)
         else:
-            raise ValueError('Расширение файла должно быть .xlsx или .xls')
+            raise ValueError('Расширение файла должно быть .xlsx или .xls. file --- %s', filename)
 
         parsed_dfs = []
 

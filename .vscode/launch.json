@@ -5,16 +5,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run test",
+            "name": "parse file",
             "type": "python",
             "request": "launch",
             "module": "myparser",
             "args": [
                 "parse-file",
-                "myparser\\test_data\\83346_2017_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.xlsx"
+                "myparser\\test_data\\86989_2018_Rukovoditeli,_zamestiteli_i_glavnye_bukhgaltery_podvedomstvennykh_uchrezhdenii.pdf"
             ],
             "console": "integratedTerminal",
-            "justMyCode": true
-        }
+            "justMyCode": false,
+        },
+        {
+            "name": "parse test folder",
+            "type": "python",
+            "request": "launch",
+            "module": "myparser",
+            "args": [
+                "parse-test",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
+        {
+            "name": "parse folder",
+            "type": "python",
+            "request": "launch",
+            "module": "myparser",
+            "args": [
+                "parse-folder",
+                "myparser\\test_data"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
     ]
 }
