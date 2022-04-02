@@ -1,9 +1,23 @@
 # declarations-parser
 
+Парсит декларации в docx и xlsx (pdf будет чуть позже). Выходные форматы: xlsx, json. 
 
-Методы:
-    1. parse-file 
-    2. parse-folder
+__Команды:__
+    
+Распарсить тестовые файлы:
+```
+python -m myparser parse-test 
+```
+все файлы в папке:
+```
+python -m myparser parse-folder <path>
+```
+файл:
+```
+python -m myparser parse-file <path> 
+ ```
+ __Настройки__:
+ 
+ Выходной формат и уровень логирования прописывается в .env
 
-
-    ```python -m myparser parse-folder user\test_data```
+    
